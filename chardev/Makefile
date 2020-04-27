@@ -7,4 +7,4 @@ all:
 	make -C $(KERNELDIR) M=$(PWD)
 
 clean:
-	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions
+	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c *.mod .tmp_versions
