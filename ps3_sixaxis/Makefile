@@ -1,4 +1,4 @@
-obj-m := kingston_driver.o
+obj-m := ps3_sixaxis.o
 
 KERNELDIR ?= /lib/modules/$(shell uname -r)/build
 PWD       := $(shell pwd)
