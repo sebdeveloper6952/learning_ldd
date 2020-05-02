@@ -1206,7 +1206,7 @@ static void play_with_leds(struct sony_sc *sc)
         memcpy(sc->led_state, sixaxis_leds[sc->led_num], sizeof(sixaxis_leds[0]));
         sony_set_leds(sc);
     }
-} 
+}
 
 static int sony_raw_event(struct hid_device *hdev, struct hid_report *report,
 		u8 *rd, int size)
@@ -2855,7 +2855,7 @@ static int sony_probe(struct hid_device *hdev, const struct hid_device_id *id)
 	struct sony_sc *sc;
 	unsigned int connect_mask = HID_CONNECT_DEFAULT;
 
-    info("[sixaxis_driver] probe function starting.\n");
+    info("[sebdev6992_sixaxis] probe function starting.\n");
 
 	// if (!strcmp(hdev->name, "FutureMax Dance Mat"))
 	// 	quirks |= FUTUREMAX_DANCE_MAT;
@@ -2916,7 +2916,7 @@ static int sony_probe(struct hid_device *hdev, const struct hid_device_id *id)
 		return -ENODEV;
 	}
 
-    info("[sixaxis_driver] probe function finished.\n");
+    info("[sebdev6992_sixaxis] probe function finished.\n");
 
 	return ret;
 }
