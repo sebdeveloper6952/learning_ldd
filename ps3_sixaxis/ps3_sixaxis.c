@@ -769,6 +769,8 @@ static int sixaxis_mapping(struct hid_device *hdev, struct hid_input *hi,
 			  struct hid_field *field, struct hid_usage *usage,
 			  unsigned long **bit, int *max)
 {
+	info("[ps3_sixaxis] mapping called.\n");
+	
 	if ((usage->hid & HID_USAGE_PAGE) == HID_UP_BUTTON) {
 		unsigned int key = usage->hid & HID_USAGE;
 
@@ -1187,25 +1189,37 @@ static void nsg_mrxu_parse_report(struct sony_sc *sc, u8 *rd, int size)
 	input_sync(sc->touchpad);
 }
 
-static void play_with_leds(struct sony_sc *sc)
+static void play_with_leds(struct sony_sc *sc, struct hid_report *report)
 {
-    static const u8 sixaxis_leds[4][4] = {
-            { 0x01, 0x00, 0x00, 0x00 },
-            { 0x00, 0x01, 0x00, 0x00 },
-            { 0x00, 0x00, 0x01, 0x00 },
-            { 0x00, 0x00, 0x00, 0x01 }
+    static const u8 sixaxis_leds[5][4] = {
+		{ 0x01, 0x01, 0x01, 0x01 },
+		{ 0x01, 0x00, 0x00, 0x00 },
+		{ 0x00, 0x01, 0x00, 0x00 },
+		{ 0x00, 0x00, 0x01, 0x00 },
+		{ 0x00, 0x00, 0x00, 0x01 },
     };
+	struct hid_field *field = report->field[1];
+	u8 val;
+	int index = 0;
+	
+	if (!field) {
+		return;
+	}
 
-    if (sc->led_counter++ > sc->led_interval) {
-        if (sc->led_interval++ > 30) {
-            sc->led_interval = 5;
-        }
+	val = *field->value;
 
-        sc->led_counter = 0;
-        sc->led_num = (sc->led_num + 1) % 4;
-        memcpy(sc->led_state, sixaxis_leds[sc->led_num], sizeof(sixaxis_leds[0]));
-        sony_set_leds(sc);
-    }
+	if (val < 64) {
+		index = 4;
+	} else if (val <= 128) {
+		index = 3;
+	} else if (val > 128 && val < 192) {
+		index = 2;
+	} else if (val >= 192) {
+		index = 1;
+	}
+
+	memcpy(sc->led_state, sixaxis_leds[index], sizeof(sixaxis_leds[0]));
+	sony_set_leds(sc);
 }
 
 static int sony_raw_event(struct hid_device *hdev, struct hid_report *report,
@@ -1236,7 +1250,7 @@ static int sony_raw_event(struct hid_device *hdev, struct hid_report *report,
 
 		sixaxis_parse_report(sc, rd, size);
 
-        play_with_leds(sc);
+        play_with_leds(sc, report);
 
 	} else if ((sc->quirks & MOTION_CONTROLLER_BT) && rd[0] == 0x01 && size == 49) {
 		sixaxis_parse_report(sc, rd, size);
@@ -2266,40 +2280,40 @@ static int sony_allocate_output_report(struct sony_sc *sc)
 	return 0;
 }
 
-#ifdef CONFIG_SONY_FF
-static int sony_play_effect(struct input_dev *dev, void *data,
-			    struct ff_effect *effect)
+// #ifdef CONFIG_SONY_FF
+// static int sony_play_effect(struct input_dev *dev, void *data,
+// 			    struct ff_effect *effect)
+// {
+// 	struct hid_device *hid = input_get_drvdata(dev);
+// 	struct sony_sc *sc = hid_get_drvdata(hid);
+
+// 	if (effect->type != FF_RUMBLE)
+// 		return 0;
+
+// 	sc->left = effect->u.rumble.strong_magnitude / 256;
+// 	sc->right = effect->u.rumble.weak_magnitude / 256;
+
+// 	sony_schedule_work(sc, SONY_WORKER_STATE);
+// 	return 0;
+// }
+
+// static int sony_init_ff(struct sony_sc *sc)
+// {
+// 	struct hid_input *hidinput = list_entry(sc->hdev->inputs.next,
+// 						struct hid_input, list);
+// 	struct input_dev *input_dev = hidinput->input;
+
+// 	input_set_capability(input_dev, EV_FF, FF_RUMBLE);
+// 	return input_ff_create_memless(input_dev, NULL, sony_play_effect);
+// }
+
+// #else
+static int sony_init_ff(struct sony_sc *sc)
 {
-	struct hid_device *hid = input_get_drvdata(dev);
-	struct sony_sc *sc = hid_get_drvdata(hid);
-
-	if (effect->type != FF_RUMBLE)
-		return 0;
-
-	sc->left = effect->u.rumble.strong_magnitude / 256;
-	sc->right = effect->u.rumble.weak_magnitude / 256;
-
-	sony_schedule_work(sc, SONY_WORKER_STATE);
 	return 0;
 }
 
-static int sony_init_ff(struct sony_sc *sc)
-{
-	struct hid_input *hidinput = list_entry(sc->hdev->inputs.next,
-						struct hid_input, list);
-	struct input_dev *input_dev = hidinput->input;
-
-	input_set_capability(input_dev, EV_FF, FF_RUMBLE);
-	return input_ff_create_memless(input_dev, NULL, sony_play_effect);
-}
-
-#else
-static int sony_init_ff(struct sony_sc *sc)
-{
-	return 0;
-}
-
-#endif
+// #endif
 
 static int sony_battery_get_property(struct power_supply *psy,
 				     enum power_supply_property psp,
