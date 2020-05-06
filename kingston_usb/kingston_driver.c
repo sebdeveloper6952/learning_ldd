@@ -7,7 +7,7 @@
 #include <linux/usb.h>
 #include <asm/uaccess.h>
 
-#define VENDOR_ID 0x951
+#define VENDOR_ID 0x0951
 #define PRODUCT_ID 0x1666
 #define KINGSTON_USB_MINOR_BASE 192
 #define info(s, ...) printk(KERN_INFO s, ##__VA_ARGS__)

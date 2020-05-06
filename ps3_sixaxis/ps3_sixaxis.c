@@ -769,7 +769,6 @@ static int sixaxis_mapping(struct hid_device *hdev, struct hid_input *hi,
 			  struct hid_field *field, struct hid_usage *usage,
 			  unsigned long **bit, int *max)
 {
-	info("[ps3_sixaxis] mapping called.\n");
 	
 	if ((usage->hid & HID_USAGE_PAGE) == HID_UP_BUTTON) {
 		unsigned int key = usage->hid & HID_USAGE;
@@ -1201,6 +1200,8 @@ static void play_with_leds(struct sony_sc *sc, struct hid_report *report)
 	struct hid_field *field = report->field[1];
 	u8 val;
 	int index = 0;
+
+	info("[sixaxis_driver] left joystick x value is %d\n", *field->value);
 	
 	if (!field) {
 		return;
@@ -1226,6 +1227,8 @@ static int sony_raw_event(struct hid_device *hdev, struct hid_report *report,
 		u8 *rd, int size)
 {
 	struct sony_sc *sc = hid_get_drvdata(hdev);
+
+	// info("[sixaxis_driver] raw event called.\n");
 
 	/*
 	 * Sixaxis HID report has acclerometers/gyro with MSByte first, this
@@ -1352,6 +1355,8 @@ static int sony_mapping(struct hid_device *hdev, struct hid_input *hi,
 			unsigned long **bit, int *max)
 {
 	struct sony_sc *sc = hid_get_drvdata(hdev);
+
+	info("[sixaxis_driver] input_mapping function called.\n");
 
 	if (sc->quirks & BUZZ_CONTROLLER) {
 		unsigned int key = usage->hid & HID_USAGE;
@@ -2626,7 +2631,7 @@ static int sony_input_configured(struct hid_device *hdev,
 	int append_dev_id;
 	int ret;
 
-    info("[sebdev6992_sixaxis] input_configured\n");
+    info("[sixaxis_driver] input_configured function called.\n");
 
 	ret = sony_set_device_id(sc);
 	if (ret < 0) {
@@ -2869,7 +2874,7 @@ static int sony_probe(struct hid_device *hdev, const struct hid_device_id *id)
 	struct sony_sc *sc;
 	unsigned int connect_mask = HID_CONNECT_DEFAULT;
 
-    info("[sebdev6992_sixaxis] probe function starting.\n");
+    info("[sixaxis_driver] probe function starting.\n");
 
 	// if (!strcmp(hdev->name, "FutureMax Dance Mat"))
 	// 	quirks |= FUTUREMAX_DANCE_MAT;
@@ -2930,7 +2935,7 @@ static int sony_probe(struct hid_device *hdev, const struct hid_device_id *id)
 		return -ENODEV;
 	}
 
-    info("[sebdev6992_sixaxis] probe function finished.\n");
+    info("[sixaxis_driver] probe function finished.\n");
 
 	return ret;
 }
@@ -2938,6 +2943,8 @@ static int sony_probe(struct hid_device *hdev, const struct hid_device_id *id)
 static void sony_remove(struct hid_device *hdev)
 {
 	struct sony_sc *sc = hid_get_drvdata(hdev);
+
+	info("[sixaxis_driver] remove function called.\n");
 
 	hid_hw_close(hdev);
 
@@ -2957,6 +2964,8 @@ static void sony_remove(struct hid_device *hdev)
 	sony_release_device_id(sc);
 
 	hid_hw_stop(hdev);
+
+	info("[sixaxis_driver] sixaxis device removed.\n");
 }
 
 #ifdef CONFIG_PM
@@ -3003,8 +3012,13 @@ static const struct hid_device_id sixaxis_id_table[] = {
 };
 MODULE_DEVICE_TABLE(hid, sixaxis_id_table);
 
+static const struct hid_report_id report_table[] = {
+	{HID_REPORT_ID(0)},
+	{}
+};
+
 static struct hid_driver sony_driver = {
-	.name             = "sebdev6992_sixaxis",
+	.name             = "sixaxis_driver",
 	.id_table         = sixaxis_id_table,
 	.input_mapping    = sony_mapping,
 	.input_configured = sony_input_configured,
@@ -3012,6 +3026,7 @@ static struct hid_driver sony_driver = {
 	.remove           = sony_remove,
 	.report_fixup     = sony_report_fixup,
 	.raw_event        = sony_raw_event,
+	.report_table     = report_table,
 
 #ifdef CONFIG_PM
 	.suspend          = sony_suspend,
@@ -3022,6 +3037,7 @@ static struct hid_driver sony_driver = {
 
 static int __init sony_init(void)
 {
+	info("[sixaxis_driver] driver registered.\n");
 	return hid_register_driver(&sony_driver);
 }
 
@@ -3029,6 +3045,7 @@ static void __exit sony_exit(void)
 {
 	hid_unregister_driver(&sony_driver);
 	ida_destroy(&sony_device_id_allocator);
+	info("[sixaxis_driver] driver unregistered.\n");
 }
 module_init(sony_init);
 module_exit(sony_exit);

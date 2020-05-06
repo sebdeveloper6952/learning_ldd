@@ -35,7 +35,7 @@ int init_module(void)
         return major;
     }
 
-    printk(KERN_INFO "[chardev] i was assigned major number %d\n", major);
+    printk(KERN_INFO "[chardev] was assigned major number %d\n", major);
 
     return SUCCESS;
 }
@@ -53,7 +53,9 @@ static int device_open(struct inode *inode, struct file *filp)
         return -EBUSY;
     
     is_device_open++;
-    sprintf(msg, "[chardev] I already told you %d times\n\n", counter++);
+    sprintf(msg, "[chardev] has been opened %d times\n", counter++);
+    printk(KERN_INFO "[chardev] has been opened %d times.\n", counter);
+    
     msg_ptr = msg;
     try_module_get(THIS_MODULE);
 
@@ -65,7 +67,7 @@ static int device_release(struct inode *inode, struct file *filp)
     is_device_open--;
     module_put(THIS_MODULE);
 
-    printk(KERN_INFO "[chardev] device_release.\n");
+    printk(KERN_INFO "[chardev] device was released.\n");
     
     return 0;
 }
@@ -74,7 +76,7 @@ static ssize_t device_read(struct file *filp, char *buffer, size_t length, loff_
 {
     int bytes_read = 0;
 
-    printk(KERN_INFO "[chardev] device_read.\n");
+    printk(KERN_INFO "[chardev] device was read.\n");
 
     if (*msg_ptr == 0) return 0;
 
