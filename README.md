@@ -24,4 +24,6 @@
 8. Presionar el boton PS del control sixaxis.
 9. Mover el joystick izquierdo y comprobar que las luces LEDs del control se mueven, siguiendo al joystick.
 
+> Video de funcionamiento: https://youtu.be/RRP88bjE5_4
+
 
